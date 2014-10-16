@@ -9,7 +9,7 @@
 import requests, re, os.path, sys
 
 usage = """
-  Usage: {0} user password 'coursera_class_url' [curl|text]
+  Usage: {0} user password 'coursera_class_url' [curl(default)|text|csv|urls]
   Example:  {0} user@mail.com 'SuperPass!#$%' 'https://www.coursera.org/course/hwswinterface' curl
   Example2: {0} user@mail.com 'SuperPass!#$%' 'https://class.coursera.org/digitalmedia-002/lecture/79' text
 """.format("python " + sys.argv[0])
@@ -60,7 +60,18 @@ def get_link_pairs(class_name, session, headers, repr):
 def show_link_as_text(name, url):
     print "%s: %s" % (name, url)
 
-def show_link_as_curl_commands(name, url):
+def show_link_as_urls(name, url):
+    print url
+
+csv_first_line = True
+def show_link_as_csv(name, url):
+    global csv_first_line
+    if csv_first_line:
+        print "name,url"
+        csv_first_line = False;
+    print "%s,%s" % (name.replace(",", ";"), url)
+
+def show_link_as_curl(name, url):
     out_file = re.sub("[^a-zA-Z0-9_.,\[\]\(\)]", "_", name)
     extension = os.path.splitext(url)[1]
     if not out_file.endswith(extension):
@@ -101,8 +112,12 @@ user = sys.argv[1]
 pwd = sys.argv[2]
 class_names = normalize_class_name(sys.argv[3])
 curl_or_text = 'curl' if len(sys.argv) == 4 else sys.argv[4]
+visualizer = {'curl': show_link_as_curl, 
+              'text': show_link_as_text,
+              'csv': show_link_as_csv,
+              'urls': show_link_as_urls}.get(curl_or_text, show_link_as_curl)
 
 for class_name in class_names:
     (session, headers) = login(class_name, user, pwd)
-    if get_link_pairs(class_name, session, headers, show_link_as_curl_commands if curl_or_text == 'curl' else show_link_as_text) > 0:
+    if get_link_pairs(class_name, session, headers, visualizer) > 0:
         break
