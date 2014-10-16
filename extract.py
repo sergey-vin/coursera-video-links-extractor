@@ -46,12 +46,16 @@ def get_link_pairs(class_name, session, headers, repr):
 
     r = session.get('https://class.coursera.org/%s/lecture' % class_name, headers=headers)
     text = r.text.replace("\n", " ").replace("\r", "")
+    
+    found_links = 0
     for m in re.findall('.*?(Video \(MP4\) for[^<]+)<.*?data-modal-iframe="([^"]+)"', text):
         video_player_url = m[1].strip()
         r = session.get(video_player_url, headers = headers)
         assert r.ok, "Couldn't get video player page"
-
+        
+        found_links += 1
         repr(m[0].strip(), get_video_url(r.text))
+    return found_links
 
 def show_link_as_text(name, url):
     print "%s: %s" % (name, url)
@@ -64,14 +68,30 @@ def show_link_as_curl_commands(name, url):
     print "curl -C - -o '%s' '%s'" % (out_file, url)
 
 def normalize_class_name(url):
-    m = re.match(r"(?:https://)?(?:www\.)?(?:coursera\.org/course|class\.coursera\.org)/([^/]+)", url)
-    assert m, "Please, pass a valid coursera URL"
-    name = m.group(1)
-    return name
-    #r = requests.get('https://api.coursera.org/api/catalog.v1/courses')
-    #assert r.ok, "Couldn't list all coursera courses via API"
-    #print r.json()
-    #quit();
+    def name_from_url(url):
+        m = re.match(r"(?:https://)?(?:www\.)?(?:coursera\.org/course|class\.coursera\.org)/([^/]+)", url)
+        assert m, "Please, pass a valid coursera URL"
+        return m.group(1)
+
+    name = name_from_url(url)
+    if '-' in name:
+        return [name]
+
+    # search sessions for given class
+    name = "/" + name + "-"
+    r = requests.get('https://api.coursera.org/api/catalog.v1/sessions')
+    assert r.ok and r.json().get('elements', None), "Couldn't list all coursera classes via API"
+    all_classes = r.json()['elements']
+    ids = []
+    for session in all_classes:
+        if name in session['homeLink']:
+            ids.append([session['id'], session['homeLink']])
+    assert len(ids) > 0, "Couldn't find session of a selected class"
+        
+    # build a list of sessions in latest-oldest order
+    ids.sort(key = lambda e: e[0], reverse = True)
+    names = map(lambda e: name_from_url(e[1]), ids)
+    return names
 
 if len(sys.argv) not in (4, 5):
     sys.stderr.write(usage)
@@ -79,8 +99,10 @@ if len(sys.argv) not in (4, 5):
 
 user = sys.argv[1]
 pwd = sys.argv[2]
-class_name = normalize_class_name(sys.argv[3])
+class_names = normalize_class_name(sys.argv[3])
 curl_or_text = 'curl' if len(sys.argv) == 4 else sys.argv[4]
 
-(session, headers) = login(class_name, user, pwd)
-get_link_pairs(class_name, session, headers, show_link_as_curl_commands if curl_or_text == 'curl' else show_link_as_text)
+for class_name in class_names:
+    (session, headers) = login(class_name, user, pwd)
+    if get_link_pairs(class_name, session, headers, show_link_as_curl_commands if curl_or_text == 'curl' else show_link_as_text) > 0:
+        break
