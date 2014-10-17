@@ -6,7 +6,7 @@
 # https://github.com/coursera-dl/coursera - does the job, but seems too overcomplicated
 # https://gist.github.com/macias/2880753 - doesn't have a pass->credentials convertion; written in php
 
-import requests, re, os.path, sys
+import requests, re, os, sys
 
 usage = """
   Usage: {0} user password 'coursera_class_url' [curl(default)|text|csv|urls]
@@ -106,7 +106,7 @@ def normalize_class_name(url):
 
 if len(sys.argv) not in (4, 5):
     sys.stderr.write(usage)
-    sys.exit(1)
+    quit()
 
 user = sys.argv[1]
 pwd = sys.argv[2]
