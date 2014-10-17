@@ -3,7 +3,7 @@
 # (c) Sergey Vinogradov, 2014
 #
 # similar projects:
-# https://github.com/coursera-dl/coursera/tree/master/coursera - does the job, but seems too overcomplicated
+# https://github.com/coursera-dl/coursera - does the job, but seems too overcomplicated
 # https://gist.github.com/macias/2880753 - doesn't have a pass->credentials convertion; written in php
 
 import requests, re, os.path, sys
