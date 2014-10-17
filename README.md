@@ -9,16 +9,13 @@ Well, I needed to give a few links of interesting coursera videos to my friend. 
 Ok, ok. I didn't write it right away. I tried to search for something already existing, found https://github.com/coursera-dl/coursera and https://gist.github.com/macias/2880753, but first was too big and the second was too php :)
 
 ## Killer features?
-* usability 
-
+### usability 
 You can feed the tool with any coursera's class link - like https://www.coursera.org/course/hwswinterface or https://class.coursera.org/digitalmedia-002/lecture/79 - it will find all the needed stuff by itself
-
-* does what it says, and nothing more
-
+### does what it says, and nothing more
 In true UNIX style, it doesn't copy functionality of other's tools, just extracts urls. If you want to download actual .mp4 files - with continuation/in proper folders/on other PCs, try `curl` - just copy-paste the output of this tool and it'll invoke curl with proper arguments.
-
-* easy-to-read code (not that you may need that while using, but still)
-
+### almost no dependencies
+you need only `python` and python's `requests` module to run the tool. Plus, `curl` to download .mp4s
+### easy-to-read code (not that you may need that while using, but still)
 I don't deal that much with cache/cookies/storing passwords/etc., so code is compact and clean. Should be quite simple to understand/extend
 
 ## Usage
